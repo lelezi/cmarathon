@@ -28,6 +28,7 @@ execute_process(
     COMMAND ${CMAKE_COMMAND} -E tar xzf boost-1.53.0.tar.gz
     COMMAND ${CMAKE_COMMAND} -E tar xzf glog-0.3.3.tar.gz
     COMMAND ${CMAKE_COMMAND} -E tar xzf protobuf-2.5.0.tar.gz
+    COMMAND ${CMAKE_COMMAND} -E tar xzf picojson-4f93734.tar.gz
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty
 )
 
@@ -36,13 +37,33 @@ execute_process(
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/glog-0.3.3
 )
 
+execute_process(
+    COMMAND make -j5
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/glog-0.3.3
+)
+
+execute_process(
+    COMMAND ./configure
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/protobuf-2.5.0
+)
+
+execute_process(
+    COMMAND make -j5
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/protobuf-2.5.0
+)
+
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/glog-0.3.3/src)
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/boost-1.53.0/)
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/protobuf-2.5.0/src)
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/picojson-4f93734)
 
 
 # Add message proto files.
-#add_library(messages STATIC ${ProtoSources} ${ProtoHeaders})
+execute_process(
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/protobuf-2.5.0/src/.libs/protoc -I./ -I${MESOS_INSTALLATION_DIR}/include/ --cpp_out=./ cmarathon.proto
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src/messages
+)
+add_library(messages STATIC  ${CMAKE_CURRENT_SOURCE_DIR}/src/messages/cmarathon.pb.cc)
 
 
 
